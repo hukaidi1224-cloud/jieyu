@@ -1,0 +1,43 @@
+export function createGame(): {
+  state: Record<string, any>;
+  NODES: { id: string; name: string; zone: string }[];
+  CUTS: Record<string, { who: string; [k: string]: any }>;
+  go: (id: string) => void;
+  setRain: (next: string) => void;
+  say: (text: string) => void;
+  canGo: (from: string, to: string) => boolean;
+  ringCount: () => number;
+  actionsFor: () => { label: string; fn: () => void; ghost?: boolean }[];
+  placeCopy: () => [string, string];
+  journalSnapshot: () => {
+    todos: string[];
+    known: string[];
+    notes: string[];
+    banners: Record<string, boolean>;
+    cutId: string | null;
+  };
+  endingSnapshot: () => {
+    mode: string;
+    title: string;
+    line: string;
+    rings: number;
+    total: number;
+  } | null;
+  getNeighbors: () => { id: string; name: string; zone: string }[];
+  getEdgeFlags: () => Record<string, string | number>;
+  rainName: () => string;
+  alleyOpen: () => boolean;
+  activeCut: () => string | null;
+  seatedGuest: () => string | null;
+  startHold: (e?: any) => void;
+  stopHold: (commit?: boolean) => void;
+  waitInsideMouth: () => void;
+  waitAtWindow: () => void;
+  learnFold: () => void;
+  syncRead: () => void;
+  render: () => void;
+  cutProgress: () => number;
+  isHolding: () => boolean;
+  setHideBand: (v: boolean) => void;
+  subscribe: (fn: () => void) => void;
+};

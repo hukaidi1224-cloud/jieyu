@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="800" height="800">
+  <rect width="100" height="100" fill="#1a2228"/>
+  <text x="50" y="4" text-anchor="middle" fill="#8fa0aa" font-size="2.4" font-family="sans-serif">?? ? ?????????</text>
+  <g stroke="#3d9a68" stroke-width="0.35" fill="none" opacity="0.85">
+    <path d="M42,90 L42,76 L42,60 L42,46 L42,34 L42,22 L42,14 L42,8 L42,3"/>
+    <path d="M42,60 L58,60 L72,60 L86,60 L96,60"/>
+    <path d="M42,22 L22,22 L8,22"/>
+    <path d="M42,60 L22,22" stroke-dasharray="1 0.8"/>
+  </g>
+  <text x="48" y="29" fill="#7eb8d4" font-size="1.6" font-family="sans-serif">??/??</text>
+  <text x="14" y="19" fill="#7eb8d4" font-size="1.6" font-family="sans-serif">??</text>
+  <text x="64" y="57" fill="#7eb8d4" font-size="1.6" font-family="sans-serif">??</text>
+  <text x="78" y="57" fill="#7eb8d4" font-size="1.6" font-family="sans-serif">??</text>
+  <g font-family="sans-serif" font-size="2.1" text-anchor="middle">
+    <circle cx="42" cy="90" r="2.2" fill="#7eb8d4"/><text x="42" y="95.5" fill="#d5dde4">S ??</text>
+    <circle cx="42" cy="76" r="2.2" fill="#d4a017"/><text x="42" y="81.5" fill="#d5dde4">H ???</text>
+    <circle cx="42" cy="60" r="2.4" fill="#e8e0d0"/><text x="33" y="61" fill="#e8e0d0" text-anchor="end">A1 ??</text>
+    <circle cx="42" cy="46" r="2.2" fill="#7eb8d4"/><text x="48" y="47" fill="#d5dde4" text-anchor="start">A2 ??</text>
+    <circle cx="42" cy="34" r="2.2" fill="#7eb8d4"/><text x="48" y="35" fill="#d5dde4" text-anchor="start">A3 ??</text>
+    <circle cx="42" cy="22" r="2.2" fill="#c9a227"/><text x="48" y="20" fill="#d5dde4" text-anchor="start">B1 ???</text>
+    <circle cx="42" cy="14" r="1.8" fill="#7eb8d4"/><text x="48" y="15" fill="#d5dde4" text-anchor="start">B2</text>
+    <circle cx="42" cy="8" r="1.8" fill="#7eb8d4"/><text x="48" y="9" fill="#d5dde4" text-anchor="start">B3</text>
+    <circle cx="42" cy="3" r="1.8" fill="#7eb8d4"/><text x="48" y="3.5" fill="#d5dde4" text-anchor="start">B4</text>
+    <circle cx="22" cy="22" r="2" fill="#7eb8d4"/><text x="22" y="27" fill="#d5dde4">C0</text>
+    <circle cx="8" cy="22" r="2" fill="#7eb8d4"/><text x="8" y="27" fill="#d5dde4">C1</text>
+    <circle cx="58" cy="60" r="2" fill="#7eb8d4"/><text x="58" y="65.5" fill="#d5dde4">E0</text>
+    <circle cx="72" cy="60" r="2" fill="#7eb8d4"/><text x="72" y="65.5" fill="#d5dde4">E1</text>
+    <circle cx="86" cy="60" r="2" fill="#7eb8d4"/><text x="86" y="65.5" fill="#d5dde4">E2</text>
+    <circle cx="96" cy="60" r="1.8" fill="#7eb8d4"/><text x="96" y="65.5" fill="#d5dde4">E3</text>
+  </g>
+  <text x="50" y="98.5" text-anchor="middle" fill="#5a6870" font-size="1.8" font-family="sans-serif">???????????????</text>
+</svg>
