@@ -4,7 +4,7 @@ import * as audio from "./audio";
 export const CONFIG = {
   title: "借雨",
   subtitle: "雨底之东 · 试玩 demo",
-  version: "0.9.23-title",
+  version: "0.9.24-audio",
   keys: {
     journal: "KeyJ",
     cutHold: "Space",
@@ -15,6 +15,7 @@ export const CONFIG = {
     masterVolume: 0.7,
     /** Cue ids — dispatched to audio.ts. 一次性音效表；雨态底噪另有入口。 */
     cues: {
+      tap: "tap",
       paperOpen: "paperOpen",
       paperClose: "paperClose",
       pageTurn: "pageTurn",

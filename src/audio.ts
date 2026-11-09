@@ -40,6 +40,13 @@ function bus(): AudioNode {
  * 雨态声景的三层的参数表。四档之间把音量、低频成分和雨点密度一起拉开，
  * 雨大就听得见大；晴与回南天退成屋檐滴水，只有零星几滴。
  * 底噪是一条棕噪源分两路：带通路给雨丝的嘶，低通路给暴雨的轰鸣。
+ *
+ * 音量是标定过的绝对增益，不是随手写的系数：棕噪经带通+低通几乎没有插入损耗
+ * （离线渲染实测各路 RMS 0.118~0.134），所以这几列直接决定输出电平。
+ * 用 `src/audio.test.ts` 的估算模型（已被上线版的实测 -45.5 dBFS 反算校验）算出四档输出：
+ *   晴 ≈ -38.5 / 回南天 ≈ -34.6 / 中雨 ≈ -28.9 / 暴雨 ≈ -21.9 dBFS（masterVolume 0.7）
+ * 上一版同位置实测只有 -45.5 dBFS（中雨），笔记本扬声器上等于听不见。
+ * 改任何一个音量列都要复跑该测试并到浏览器里复测。
  */
 export type RainSoundId = "clear" | "humid" | "mid" | "storm";
 
@@ -54,11 +61,11 @@ interface RainProfile {
   dropPitch: number;
 }
 
-const RAIN_PROFILES: Record<RainSoundId, RainProfile> = {
-  clear: { hissFreq: 2400, hissQ: 0.5, hissVol: 0.010, bodyVol: 0.0, dropKind: "drip", dropRate: 1.2, dropVol: 0.050, dropPitch: 1500 },
-  humid: { hissFreq: 1750, hissQ: 0.40, hissVol: 0.020, bodyVol: 0.006, dropKind: "drip", dropRate: 2.4, dropVol: 0.038, dropPitch: 1150 },
-  mid: { hissFreq: 1300, hissQ: 0.35, hissVol: 0.055, bodyVol: 0.022, dropKind: "patter", dropRate: 13, dropVol: 0.030, dropPitch: 1900 },
-  storm: { hissFreq: 820, hissQ: 0.30, hissVol: 0.120, bodyVol: 0.085, dropKind: "patter", dropRate: 30, dropVol: 0.045, dropPitch: 1500 },
+export const RAIN_PROFILES: Record<RainSoundId, RainProfile> = {
+  clear: { hissFreq: 2400, hissQ: 0.5, hissVol: 0.11, bodyVol: 0.0, dropKind: "drip", dropRate: 1.2, dropVol: 0.17, dropPitch: 1500 },
+  humid: { hissFreq: 1750, hissQ: 0.40, hissVol: 0.16, bodyVol: 0.04, dropKind: "drip", dropRate: 2.4, dropVol: 0.18, dropPitch: 1150 },
+  mid: { hissFreq: 1300, hissQ: 0.35, hissVol: 0.36, bodyVol: 0.10, dropKind: "patter", dropRate: 13, dropVol: 0.6, dropPitch: 1900 },
+  storm: { hissFreq: 820, hissQ: 0.30, hissVol: 0.80, bodyVol: 0.30, dropKind: "patter", dropRate: 32, dropVol: 0.91, dropPitch: 1500 },
 };
 
 /** 当前雨态；未初始化音频时先记在这里，rainStart 建链时按它调音。 */
@@ -226,6 +233,55 @@ function noiseBurst(dur: number, vol: number, bpFreq: number, bpQ: number): void
   src.start(t);
 }
 
+/**
+ * 点触反馈：质感敲击——一记很短的带通噪声起振，加一下有体的下滑撞击，
+ * 像指节敲在潮木头上，用来顶住「点了但没声音」的空档。
+ * 每记音高与起振强度轻微抖动，连点不呆板；总峰值约 -16 dBFS，比雨底大 10 dB 上下。
+ */
+let tapBuf: AudioBuffer | null = null;
+
+function tap(): void {
+  if (!ctx) return;
+  const c = ctx;
+  const t = c.currentTime;
+  if (!tapBuf) {
+    const n = Math.floor(c.sampleRate * 0.03);
+    tapBuf = c.createBuffer(1, n, c.sampleRate);
+    const d = tapBuf.getChannelData(0);
+    for (let i = 0; i < n; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 4);
+    }
+  }
+  const src = c.createBufferSource();
+  src.buffer = tapBuf;
+  src.playbackRate.value = 0.9 + Math.random() * 0.3;
+  const bp = c.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 2600 * (0.9 + Math.random() * 0.25);
+  bp.Q.value = 1.6;
+  const attack = c.createGain();
+  attack.gain.setValueAtTime(0.1, t);
+  attack.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+  src.connect(bp);
+  bp.connect(attack);
+  attack.connect(bus());
+  src.start(t);
+
+  const f = 240 * (0.94 + Math.random() * 0.14);
+  const o = c.createOscillator();
+  o.type = "triangle";
+  o.frequency.setValueAtTime(f, t);
+  o.frequency.exponentialRampToValueAtTime(f * 0.66, t + 0.07);
+  const body = c.createGain();
+  body.gain.setValueAtTime(0.0001, t);
+  body.gain.exponentialRampToValueAtTime(0.13, t + 0.006);
+  body.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+  o.connect(body);
+  body.connect(bus());
+  o.start(t);
+  o.stop(t + 0.13);
+}
+
 /** 纸页打开：脆短噪声。 */
 function paperOpen(): void {
   noiseBurst(0.06, 0.12, 2400, 1.8);
@@ -347,6 +403,9 @@ function nameBack(): void {
 export function playCue(id: string): void {
   if (!ok) return;
   switch (id) {
+    case "tap":
+      tap();
+      break;
     case "paperOpen":
       paperOpen();
       break;

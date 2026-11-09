@@ -304,7 +304,10 @@ export function mount(root: HTMLElement): Game {
     b.type = "button";
     b.textContent = label;
     if (className) b.className = className;
-    b.addEventListener("click", onClick);
+    b.addEventListener("click", () => {
+      playCue("tap");
+      onClick();
+    });
     detailActs.appendChild(b);
   }
 
@@ -743,6 +746,8 @@ export function mount(root: HTMLElement): Game {
         b.appendChild(tip);
         b.addEventListener("click", (e) => {
           e.stopPropagation();
+          // 先给一下敲击：位移与开纸都有延迟，反馈必须落在点的那一帧
+          playCue("tap");
           onSpot(spot);
         });
         sceneSpots.appendChild(b);
@@ -924,10 +929,14 @@ export function mount(root: HTMLElement): Game {
     const rect = artBox.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
+    playCue("tap");
     movePlayerTo(Math.max(8, Math.min(92, x)), Math.max(10, Math.min(90, y)));
   });
 
-  el("btn-back-explore").addEventListener("click", () => enterExplore());
+  el("btn-back-explore").addEventListener("click", () => {
+    playCue("paperClose");
+    enterExplore();
+  });
   window.addEventListener("resize", () => {
     if (view === "explore") layoutArtBox();
   });
