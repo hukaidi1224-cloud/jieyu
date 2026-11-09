@@ -135,19 +135,49 @@ afterEach(() => {
 });
 
 describe("audio", () => {
-  it("四档雨声单调、相邻档拉得开，最轻的晴也在可听区", async () => {
+  it("晴＝雨停：三层全为零；三档有雨的天气阶梯拉得开且都在可听区", async () => {
     const { RAIN_PROFILES } = await import("./audio");
-    const order: RainId[] = ["clear", "humid", "mid", "storm"];
+    const clear = RAIN_PROFILES.clear;
+    expect(clear.hissVol, "晴不该有雨丝的嘶").toBe(0);
+    expect(clear.bodyVol, "晴不该有轰鸣").toBe(0);
+    expect(clear.dropRate, "晴不该有一滴滴").toBe(0);
+    expect(rainDbfs("clear", clear as unknown as Profile), "按模型算晴的输出电平").toBe(-Infinity);
+
+    const order: RainId[] = ["humid", "mid", "storm"];
     const level = order.map((r) => rainDbfs(r, RAIN_PROFILES[r] as unknown as Profile));
     for (let i = 1; i < order.length; i++) {
       expect(level[i], `${order[i]} 要比 ${order[i - 1]} 响`).toBeGreaterThan(level[i - 1]);
       expect(level[i] - level[i - 1], "相邻两档至少差 3 dB").toBeGreaterThanOrEqual(3);
     }
-    // 旧表的中雨实测只有 -45.5 dBFS，笔记本扬声器上等于没有；现在最轻的一档也要站进可听区
-    expect(level[0], "晴太轻就等于没有背景音").toBeGreaterThan(-41);
-    expect(level[0], "晴太重会盖过叙事").toBeLessThan(-35);
-    expect(level[3], "暴雨要明显压过来").toBeLessThan(-20);
-    expect(level[3] - level[0], "晴→暴雨总差至少 12 dB").toBeGreaterThanOrEqual(12);
+    // 旧表的中雨实测只有 -45.5 dBFS，笔记本扬声器上等于没有；最轻的一档也要站进可听区
+    expect(level[0], "回南天太轻就等于没有背景音").toBeGreaterThan(-41);
+    expect(level[0], "回南天太重会盖过叙事").toBeLessThan(-33);
+    expect(level[2], "暴雨要明显压过来").toBeLessThan(-20);
+    expect(level[2] - level[0], "回南天→暴雨总差至少 12 dB").toBeGreaterThanOrEqual(12);
+  });
+
+  it("切到晴雨点层当场停发，换回有雨的档又能响", async () => {
+    const log = installFakeAudio();
+    const audio = await import("./audio");
+    const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+
+    audio.init(0.7);
+    audio.setRainAmbience("storm");
+    await wait(500);
+    expect(log.bufferSources + log.oscillators.length, "暴雨该有雨点在发").toBeGreaterThan(2);
+    const stormCount = { src: log.bufferSources, osc: log.oscillators.length };
+
+    audio.setRainAmbience("clear");
+    await wait(900);
+    expect(log.bufferSources, "晴不该再发雨点的噼啪").toBe(stormCount.src);
+    expect(log.oscillators.length, "晴不该再有一滴雨声").toBe(stormCount.osc);
+
+    audio.setRainAmbience("mid");
+    await wait(500);
+    expect(
+      log.bufferSources + log.oscillators.length,
+      "换回中雨要重新有雨点，晴的停止不是将错就错"
+    ).toBeGreaterThan(stormCount.src + stormCount.osc);
   });
 
   it("点兴趣点当帧就发一记敲击，开始之前不建 AudioContext", async () => {

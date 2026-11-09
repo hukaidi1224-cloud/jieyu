@@ -4,7 +4,7 @@ import * as audio from "./audio";
 export const CONFIG = {
   title: "借雨",
   subtitle: "雨底之东 · 试玩 demo",
-  version: "0.9.24-audio",
+  version: "0.9.25-audio",
   keys: {
     journal: "KeyJ",
     cutHold: "Space",

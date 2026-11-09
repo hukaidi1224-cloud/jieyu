@@ -37,15 +37,15 @@ function bus(): AudioNode {
 }
 
 /**
- * 雨态声景的三层的参数表。四档之间把音量、低频成分和雨点密度一起拉开，
- * 雨大就听得见大；晴与回南天退成屋檐滴水，只有零星几滴。
+ * 雨态声景的三层参数表。三档有雨的天气把音量、低频成分和雨点密度一起拉开，
+ * 雨大就听得见大；晴是雨停了，三条路全为 0，这一档不出雨声。
  * 底噪是一条棕噪源分两路：带通路给雨丝的嘶，低通路给暴雨的轰鸣。
  *
  * 音量是标定过的绝对增益，不是随手写的系数：棕噪经带通+低通几乎没有插入损耗
  * （离线渲染实测各路 RMS 0.118~0.134），所以这几列直接决定输出电平。
- * 用 `src/audio.test.ts` 的估算模型（已被上线版的实测 -45.5 dBFS 反算校验）算出四档输出：
- *   晴 ≈ -38.5 / 回南天 ≈ -34.6 / 中雨 ≈ -28.9 / 暴雨 ≈ -21.9 dBFS（masterVolume 0.7）
- * 上一版同位置实测只有 -45.5 dBFS（中雨），笔记本扬声器上等于听不见。
+ * 用 `src/audio.test.ts` 的估算模型算出四档输出，11-09 上线实测对上（误差 1 dB 内）：
+ *   晴＝无声 / 回南天 ≈ -34.6 / 中雨 ≈ -28.9（实测 -29.6）/ 暴雨 ≈ -21.9 dBFS（masterVolume 0.7）
+ * 更早那版同位置实测只有 -45.5 dBFS（中雨），笔记本扬声器上等于听不见。
  * 改任何一个音量列都要复跑该测试并到浏览器里复测。
  */
 export type RainSoundId = "clear" | "humid" | "mid" | "storm";
@@ -62,7 +62,8 @@ interface RainProfile {
 }
 
 export const RAIN_PROFILES: Record<RainSoundId, RainProfile> = {
-  clear: { hissFreq: 2400, hissQ: 0.5, hissVol: 0.11, bodyVol: 0.0, dropKind: "drip", dropRate: 1.2, dropVol: 0.17, dropPitch: 1500 },
+  // 晴＝雨停了，不是「很小的雨」：三条路全给 0，这一档没有任何雨声，只剩点触反馈音。
+  clear: { hissFreq: 2400, hissQ: 0.5, hissVol: 0.0, bodyVol: 0.0, dropKind: "drip", dropRate: 0.0, dropVol: 0.0, dropPitch: 1500 },
   humid: { hissFreq: 1750, hissQ: 0.40, hissVol: 0.16, bodyVol: 0.04, dropKind: "drip", dropRate: 2.4, dropVol: 0.18, dropPitch: 1150 },
   mid: { hissFreq: 1300, hissQ: 0.35, hissVol: 0.36, bodyVol: 0.10, dropKind: "patter", dropRate: 13, dropVol: 0.6, dropPitch: 1900 },
   storm: { hissFreq: 820, hissQ: 0.30, hissVol: 0.80, bodyVol: 0.30, dropKind: "patter", dropRate: 32, dropVol: 0.91, dropPitch: 1500 },
@@ -149,6 +150,11 @@ function startDrops(): void {
 
 function tickDrops(): void {
   if (!ctx) return;
+  // 晴档没有雨点：把上一档欠下的余量清掉，切换当场就停，不让残留补发成几滴
+  if (profile.dropRate <= 0) {
+    dropDebt = 0;
+    return;
+  }
   const span = DROP_TICK_MS / 1000;
   dropDebt = Math.min(dropDebt + profile.dropRate * span, 6);
   while (dropDebt >= 1) {
