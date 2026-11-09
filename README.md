@@ -1,5 +1,7 @@
 # 借雨（雨底之东 · 试玩）
 
+**在线试玩：https://hukaidi1224-cloud.github.io/jieyu/**（本仓库 `main` 部署，无需安装）
+
 浏览器打开就能玩的叙事探秘 demo：**这座城的关卡语言只有一条——雨的大小改变街区的连通性。** 店里那把椅子可以把雨等来（晴／中雨／暴雨／回南天），雨一变，能走的路就跟着换；另有一些路不看天，看你已经知道什么。
 
 **0.9.23-title**：标题页＋说明页（开始前挡住全部交互）；探索 ↔ 全屏详情；场景换皮（每节点独立调色）；WebAudio 实时合成音效（雨声分嘶／轰鸣／雨点三层，随雨大小变，无外部音频文件）；26 个观察点全部挂图；剪发收尾（按住落剪、松手停住，剪成什么样决定客人告诉你什么）；名字是钥匙（没想起名字只给「戴上」）；结局收口卡＋可漏差落到三处；陈琛闲话池。
@@ -30,11 +32,11 @@ npm run build && npm run preview
 
 ## 部署
 
-站点地址＝仓库的 GitHub Pages 项目站，路径由 `vite.config.ts` 的 `base` 决定，当前是 `/jieyu/`；**改名仓库要同步改这一行**，否则线上整站资源 404。
+站点地址＝**https://hukaidi1224-cloud.github.io/jieyu/**，路径由 `vite.config.ts` 的 `base` 决定，当前是 `/jieyu/`；**改名仓库要同步改这一行**，否则线上整站资源 404。
 
 图片路径不以字面量直接写进 DOM：`src/art/manifest.ts` 的 `ASSETS` 保留以 `/` 开头的路径作为唯一真相源，`artUrl()` 在运行时把站点根（`import.meta.env.BASE_URL`）拼上去。单测下 `BASE_URL` 是 `/`，所以测试断言仍是 `/art/...`。
 
-发布链＝`.github/workflows/deploy.yml`：push 到 `main` → `npm ci && npm run build` → 上传 `dist` → 部署到 Pages。本地 `npm run build && npm run preview` 走的也是同一个 base，本机能开线上就能开。
+发布链＝`.github/workflows/deploy.yml`：push 到 `main` → `npm ci` → `npm test` → `npm run build` → 上传 `dist` → 部署到 Pages。测试不通过就不部署。本地 `npm run build && npm run preview` 走的也是同一个 base，本机能开线上就能开。
 
 ## 美术
 
